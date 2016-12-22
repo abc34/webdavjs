@@ -89,9 +89,6 @@ WebDAV.Fs = function(rootUrl)
         for(var i=0; i<doc.children.length; i++)
         {
           var response       = doc.children[i];
-          //var href         = response.getElementsByTagName('D:href')[0].firstChild.nodeValue;
-          //var propstat     = response.getElementsByTagName('D:propstat')[0];
-e.getElementsByTagName('D:collection')[0];
           var href       = response.querySelector('href').textContent;
           var collection = response.querySelector('collection');
 
