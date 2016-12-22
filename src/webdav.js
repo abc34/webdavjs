@@ -48,9 +48,7 @@ WebDAV.Fs = function(rootUrl)
   this.file = function(href)
   {
     this.type = 'file';
-
     this.url = fs.urlFor(href);
-
     this.name = fs.nameFor(this.url);
 
     this.read = function()
@@ -76,9 +74,7 @@ WebDAV.Fs = function(rootUrl)
   this.dir = function(href)
   {
     this.type = 'dir';
-
     this.url = fs.urlFor(href);
-
     this.name = fs.nameFor(this.url);
 
     this.children = function()
