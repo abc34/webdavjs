@@ -31,10 +31,10 @@ var WebDAV = {
       };
       xhr.onerror = function () { reject(new Error('Error: there was a network error.')); };
       xhr.onabort = function () { reject(new Error('Error: abort')); };
-      xhr.open(verb || 'GET', url);
+      xhr.open(verb, url);
       xhr.setRequestHeader('Content-Type', 'text/xml; charset=UTF-8');
       for (var header in headers) { xhr.setRequestHeader(header, headers[header]); }
-      try { xhr.send(data); } catch (ex) { reject(new Error('getScriptFile(url): ' + ex.message + '\nurl = ' + url)); }
+      try { xhr.send(data); } catch (ex) { reject(new Error('WebDAV: ' + ex.message + '\nurl = ' + url)); }
     });
   }
 };
