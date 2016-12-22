@@ -1,3 +1,4 @@
+
 // A raw WebDAV interface
 var WebDAV = {
 
@@ -84,7 +85,7 @@ WebDAV.Fs = function(rootUrl)
         var result = [];
         for(var i=0; i<doc.children.length; i++)
         {
-          var response       = doc.children[i];
+          var response   = doc.children[i];
           var href       = response.querySelector('href').textContent;
           var collection = response.querySelector('collection');
 
