@@ -7,7 +7,7 @@ var WebDAV = {
   DELETE: function(url) { return this.request('DELETE', url, {}, null, 'text'); },
   PUT: function(url, data) { return this.request('PUT', url, {}, data, 'text'); },
 
-  //verb: 'GET', 'PROPFIND', 'MKCOL', 'DELEE', 'PUT', 'MOVE' ...
+  //verb: 'GET', 'PROPFIND', 'MKCOL', 'DELETE', 'PUT', 'MOVE' ...
   //headers: {'Depth': '1'} ...
   //type:
   // '' or 'text'  - plain text,
@@ -15,7 +15,7 @@ var WebDAV = {
   // 'blob'        - Blob,
   // 'document'    - html,
   // 'json'        - json,
-  //Return: promise objext.
+  //Return: promise object.
   request: function(verb, url, headers, data, type)
   {
     return new Promise(function (resolve, reject)
@@ -32,7 +32,7 @@ var WebDAV = {
       xhr.onerror = function () { reject(new Error('Error: there was a network error.')); };
       xhr.onabort = function () { reject(new Error('Error: abort')); };
       xhr.open(verb || 'GET', url);
-      xhr.setRequestHeader("Content-Type", "text/xml; charset=UTF-8");
+      xhr.setRequestHeader('Content-Type', 'text/xml; charset=UTF-8');
       for (var header in headers) { xhr.setRequestHeader(header, headers[header]); }
       try { xhr.send(data); } catch (ex) { reject(new Error('getScriptFile(url): ' + ex.message + '\nurl = ' + url)); }
     });
@@ -106,7 +106,7 @@ WebDAV.Fs = function(rootUrl)
         return result;
       };
 
-      return WebDAV.PROPFIND(this.url).then( function(doc)
+      return WebDAV.PROPFIND(this.url).then(function(doc)
       {
         return Promise.resolve(childrenFunc(doc.source.children[0]));
       });
