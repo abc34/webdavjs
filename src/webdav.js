@@ -25,7 +25,7 @@ var WebDAV = {
       xhr.onload = function ()
       { 
         if (xhr.status >= 200 && xhr.status < 300)
-           resolve({ source: xhr.response, responseURL: xhr.responseURL, type: xhr.responseType });
+          resolve({ source: xhr.response, responseURL: xhr.responseURL, type: xhr.responseType });
         else
           reject(new Error('Error: error code:' + xhr.statusText));
       };
