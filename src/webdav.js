@@ -3,7 +3,7 @@
 var WebDAV = {
 
   GET: function(url) { return this.request('GET', url, {}, null, 'text'); },
-  PROPFIND: function(url) { return this.request('PROPFIND', url, {Depth: "1"}, null, 'document'); },
+  PROPFIND: function(url) { return this.request('PROPFIND', url, {Depth: '1'}, null, 'document'); },
   MKCOL: function(url) { return this.request('MKCOL', url, {}, null, 'text'); },
   DELETE: function(url) { return this.request('DELETE', url, {}, null, 'text'); },
   PUT: function(url, data) { return this.request('PUT', url, {}, data, 'text'); },
