@@ -3,10 +3,16 @@
 var WebDAV = {
 
   GET: function(url) { return this.request('GET', url, {}, null, 'text'); },
-  PROPFIND: function(url) { return this.request('PROPFIND', url, {Depth: '1'}, null, 'document'); },
+  PROPFIND: function(url)
+  {
+    return this.request('PROPFIND', url, {'Depth': '1','Content-Type': 'text/xml; charset=UTF-8'},
+      '<?xml version="1.0" encoding="utf-8" ?><D:propfind xmlns:D="DAV:"><D:allprop/></D:propfind>',
+      'document');
+  },
   MKCOL: function(url) { return this.request('MKCOL', url, {}, null, 'text'); },
   DELETE: function(url) { return this.request('DELETE', url, {}, null, 'text'); },
   PUT: function(url, data) { return this.request('PUT', url, {}, data, 'text'); },
+  MOVE: function(url, dest) { return this.request('MOVE', url, {'Destination':dest}, null, 'text'); },
 
   //verb: 'GET', 'PROPFIND', 'MKCOL', 'DELETE', 'PUT', 'MOVE' ...
   //headers: {'Depth': '1'} ...
@@ -15,7 +21,7 @@ var WebDAV = {
   // 'arraybuffer' - ArrayBuffer,
   // 'blob'        - Blob,
   // 'document'    - html,
-  // 'json'        - json,
+  // 'json'        - json.
   //Return: promise object.
   request: function(verb, url, headers, data, type)
   {
@@ -25,7 +31,7 @@ var WebDAV = {
       xhr.responseType = type || 'text';
       xhr.onload = function ()
       { 
-        if (xhr.status >= 200 && xhr.status < 300)
+        if (xhr.status >= 200 && xhr.status < 208)
           resolve({ source: xhr.response, responseURL: xhr.responseURL, type: xhr.responseType });
         else
           reject(new Error('Error: error code:' + xhr.statusText));
@@ -33,7 +39,6 @@ var WebDAV = {
       xhr.onerror = function () { reject(new Error('Error: there was a network error.')); };
       xhr.onabort = function () { reject(new Error('Error: abort')); };
       xhr.open(verb, url);
-      xhr.setRequestHeader('Content-Type', 'text/xml; charset=UTF-8');
       for (var header in headers) { xhr.setRequestHeader(header, headers[header]); }
       try { xhr.send(data); } catch (ex) { reject(new Error('WebDAV: ' + ex.message + '\nurl = ' + url)); }
     });
@@ -51,17 +56,14 @@ WebDAV.Fs = function(rootUrl)
     this.type = 'file';
     this.url = fs.urlFor(href);
     this.name = fs.nameFor(this.url);
-
     this.read = function()
     {
       return WebDAV.GET(this.url);
     };
-
     this.write = function(data)
     {
       return WebDAV.PUT(this.url, data);
     };
-
     this.rm = function()
     {
       return WebDAV.DELETE(this.url);
@@ -77,13 +79,12 @@ WebDAV.Fs = function(rootUrl)
     this.type = 'dir';
     this.url = fs.urlFor(href);
     this.name = fs.nameFor(this.url);
-
     this.children = function()
     {
       var childrenFunc = function(doc)
       {
         var result = [];
-        for(var i=0; i<doc.children.length; i++)
+        for(var i=1; i<doc.children.length; i++)
         {
           var response   = doc.children[i];
           var href       = response.querySelector('href').textContent;
@@ -97,18 +98,14 @@ WebDAV.Fs = function(rootUrl)
         return result;
       };
 
-      return WebDAV.PROPFIND(this.url).then(function(doc)
-      {
+      return WebDAV.PROPFIND(this.url).then(function(doc) {
         return Promise.resolve(childrenFunc(doc.source.children[0]));
       });
-
     };
-
     this.rm = function()
     {
       return WebDAV.DELETE(this.url);
-    };
-    
+    };    
     this.mkdir = function()
     {
       return WebDAV.MKCOL(this.url);
@@ -123,7 +120,6 @@ WebDAV.Fs = function(rootUrl)
   {
     return (/^http/.test(href) ? href : this.rootUrl + href);
   };
-  
   this.nameFor = function(url)
   {
     url = decodeURIComponent(url);
