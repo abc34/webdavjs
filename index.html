@@ -3,31 +3,35 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <script type="text/javascript" src="src/webdav.js"></script>
-    <script type="text/javascript" src="src/jquery-1.3.2.min.js"></script>
+    <script type="text/javascript" src="src/jquery-3.1.1.slim.min.js"></script>
     <script type="text/javascript">
       var fs = new WebDAV.Fs('https://rockstor.lan:7500');
-
-      var urlid = function(u) { return u.replace(/:/g, '_').replace(/\//g, '_'); };
-
       var loadDir = function(dir, parentNode)
       {
         var f = function(children)
         {
-          var ulId = urlid(dir.url) + '_ul';
-
-          var ul = '<ul id="' + ulId + '">'
+          var ul = [];
           for (var c in children)
           {
-            ul += '<li class="' + children[c].type + '" id="' + 
-            urlid(children[c].url) + '"><a href="' + 
-            children[c].url + '">' + children[c].name + '</a></li>';
+            ul.push('<li class=%1><a href=%2>%3</a></li>'
+                  .replace('%1',children[c].type)
+                  .replace('%2',children[c].url)
+                  .replace('%3',children[c].name));
           }
-          ul += '</ul>';
-          
+          ul = '<ul>'+ul.join('')+'</ul>';
+
           $(parentNode).append(ul);
-          $('#' + ulId).children('.dir').click(function(e)
+          $(parentNode).find('ul>li.dir').on('click', function(e)
           {
-            loadDir(fs.dir(e.target.href), '#' + urlid(e.target.href));
+            var li = $(e.target).parent('li');
+            if(li.hasClass('dir'))
+            {
+              if(li.hasClass('active'))
+                li.children('ul').remove();
+              else
+                loadDir(new fs.dir(e.target.href), li);
+              li.toggleClass('active');
+            }
             return false;
           });
         };
@@ -41,8 +45,7 @@
 
       $(document).ready(function()
       {
-        var dir = new fs.dir('/');
-        loadDir(dir, '#root');
+        loadDir(new fs.dir('/'), '#root');
       });
     </script>
   </head>
