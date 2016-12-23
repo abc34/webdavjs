@@ -1,14 +1,23 @@
 <html>
-
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <script type="text/javascript" src="src/webdav.js"></script>
     <script type="text/javascript" src="src/jquery-3.1.1.slim.min.js"></script>
     <script type="text/javascript">
       var fs = new WebDAV.Fs('https://rockstor.lan:7500');
+      var handler = function(e)
+      {
+        var li = $(e.target).parent('li');
+        if(li.hasClass('active'))
+          li.children('ul').remove();
+        else
+          loadDir(new fs.dir(e.target.href), li);
+        li.toggleClass('active');
+        return false;
+      }
       var loadDir = function(dir, parentNode)
       {
-        var f = function(children)
+        dir.children().then(function(children)
         {
           var ul = [];
           for (var c in children)
@@ -21,26 +30,10 @@
           ul = '<ul>'+ul.join('')+'</ul>';
 
           $(parentNode).append(ul);
-          $(parentNode).find('ul>li.dir').on('click', function(e)
-          {
-            var li = $(e.target).parent('li');
-            if(li.hasClass('dir'))
-            {
-              if(li.hasClass('active'))
-                li.children('ul').remove();
-              else
-                loadDir(new fs.dir(e.target.href), li);
-              li.toggleClass('active');
-            }
-            return false;
-          });
-        };
-
-        dir.children().then(function(dir)
-        {
-          f(dir);
+          $(parentNode).find('ul>li.dir').each(function(i,o){
+            $(o.firstChild).on('click', handler);
+          })
         });
-      
       };
 
       $(document).ready(function()
