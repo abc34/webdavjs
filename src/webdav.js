@@ -1,4 +1,3 @@
-
 // A raw WebDAV interface
 var WebDAV = {
 
