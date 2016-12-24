@@ -4,7 +4,7 @@
     <script type="text/javascript" src="src/webdav.js"></script>
     <script type="text/javascript" src="src/jquery-3.1.1.slim.min.js"></script>
     <script type="text/javascript">
-      var fs = new WebDAV.Fs('https://rockstor.lan:7500');
+      var fs = new WebDAV.Fs('https://rockstor.lan:7500','admin','open');
       var handler = function(e)
       {
         var li = $(e.target).parent('li');
@@ -38,6 +38,8 @@
 
       $(document).ready(function()
       {
+        (new fs.dir('/'))
+          .mkdir('Folder/');
         loadDir(new fs.dir('/'), '#root');
       });
     </script>
