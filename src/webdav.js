@@ -13,14 +13,14 @@ var WebDAV = {
       'document');
   },
 
-  //Request method
+  //Request method.
   //verb: 'GET','PUT','DELETE','MKCOL','COPY','MOVE','PROPFIND','OPTIONS'
   //headers: {'Depth': '1'} ...
   //type:
-  // '' or 'text'  - plain text,
+  // '' or 'text'  - String,
   // 'arraybuffer' - ArrayBuffer,
   // 'blob'        - Blob,
-  // 'document'    - html,
+  // 'document'    - html/xml,
   // 'json'        - json.
   //Return: promise object.
   request: function(verb, url, headers, data, type)
@@ -50,9 +50,9 @@ var WebDAV = {
 WebDAV.Fs = function(rootUrl, login, password)
 {
   var fs = this;
-  fs.rootUrl  = rootUrl;
-  fs.auth     = login && password?'Basic '+btoa(login+':'+password):null;
-  fs.request  = WebDAV.request;
+  fs.rootUrl = rootUrl;
+  fs.auth    = login && password?'Basic '+btoa(login+':'+password):null;
+  fs.request = WebDAV.request;
   //bind static methods to this and define their as private
   var
    _GET     = WebDAV.GET.bind(this),
@@ -67,14 +67,14 @@ WebDAV.Fs = function(rootUrl, login, password)
 
   this.file = function(href)
   {
-    this.type = 'file';
-    this.url = fs.urlFor(href, fs.rootUrl);
-    this.name = fs.nameFor(this.url);
-    this.read = function() { return _GET(this.url); };
+    this.type  = 'file';
+    this.url   = fs.urlFor(href, fs.rootUrl);
+    this.name  = fs.nameFor(this.url);
+    this.read  = function() { return _GET(this.url); };
     this.write = function(data) { return _PUT(this.url, data); };
-    this.cp = function(dest) { return _COPY(this.url, fs.urlFor(dest, this.url)); };
-    this.mv = function(dest) { return _MOVE(this.url, fs.urlFor(dest, this.url)); };
-    this.rm = function() { return _DELETE(this.url); };
+    this.cp    = function(dest) { return _COPY(this.url, fs.urlFor(dest, this.url)); };
+    this.mv    = function(dest) { return _MOVE(this.url, fs.urlFor(dest, this.url)); };
+    this.rm    = function() { return _DELETE(this.url); };
 
     return this;
   };
@@ -84,7 +84,7 @@ WebDAV.Fs = function(rootUrl, login, password)
   this.dir = function(href)
   {
     this.type = 'dir';
-    this.url = fs.urlFor(href, fs.rootUrl);
+    this.url  = fs.urlFor(href, fs.rootUrl);
     this.name = fs.nameFor(this.url);
     this.children = function()
     {
@@ -107,9 +107,9 @@ WebDAV.Fs = function(rootUrl, login, password)
       });
     };
     this.mkdir = function(dest) { return _MKCOL(fs.urlFor(dest, this.url)); };
-    this.cp = function(dest) { return _COPY(this.url, fs.urlFor(dest, this.url)); };
-    this.mv = function(dest) { return _MOVE(this.url, fs.urlFor(dest, this.url)); };
-    this.rm = function() { return _DELETE(this.url); };
+    this.cp    = function(dest) { return _COPY(this.url, fs.urlFor(dest, this.url)); };
+    this.mv    = function(dest) { return _MOVE(this.url, fs.urlFor(dest, this.url)); };
+    this.rm    = function() { return _DELETE(this.url); };
 
     return this;
   };
