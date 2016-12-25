@@ -116,12 +116,10 @@ WebDAV.Fs = function(rootUrl, login, password)
   
   
 
-  this.urlFor = function(href, root)
-  {
+  this.urlFor = function(href, root) {
     return (/^http/.test(href) ? href : root + href);
   };
-  this.nameFor = function(url)
-  {
+  this.nameFor = function(url) {
     url = decodeURIComponent(url);
     return url.replace(/.*\/(.*)/, '$1') || '.';
   };
