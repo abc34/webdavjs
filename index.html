@@ -5,93 +5,12 @@
     <!--
     <script type="text/javascript" src="src/jquery-3.1.1.slim.min.js"></script>
     -->
-    <script type="text/javascript">
-      
-      var Q = (function()
-      {
-        debugger;
-
-        var Qevents=function(){};
-        Qevents.prototype =
-        {
-          map: new WeakMap(),
-          set: function(el,event,handler,data)
-          {
-            this.has(el,event,handler,data) &&  this.delete(el,event,handler,data);
-            var map_ev = this.map.has(el)?this.map.get(el):new Map();
-            var map_ha = map_ev.has(event)?map_ev.get(event):new Map();
-            var map_da = map_ha.has(handler)?map_ha.get(handler):new Map();
-            map_da.set(data,true);
-            map_ha.set(handler,map_da);
-            map_ev.set(event,map_ha);
-            this.map.set(el,map_ev);
-            el.addEventListener(event,handler,data.options);
-          },
-          has: function(el,event,handler,data)
-          {
-            debugger;
-            var map_ev = this.map.get(el); if(!map_ev) return false;
-            var map_ha = map_ev.get(event); if(!map_ha) return false;
-            var map_da = map_ha.get(handler); if(!map_da) return false;
-            return map_da.has(data);
-          },
-          delete: function(el,event,handler,data)
-          {
-            var map_ev = this.map.get(el); if(!map_ev) return false;
-            var map_ha = map_ev.get(event); if(!map_ha) return false;
-            var map_da = map_ha.get(handler); if(!map_da) return false;
-            map_da.delete(data);
-            map_da.size===0 && map_ha.delete(handler);
-            map_ha.size===0 && map_ev.delete(event);
-            map_ev.size===0 && this.map.delete(el);
-            el.removeEventListener(event,handler,data.options);
-          }
-        };
-        Qevents=new Qevents();
-
-
-        var q=function(v)
-        {
-          if(!(this instanceof q))return new q(v);
-          this.el=v;
-          if(typeof v === 'string')
-            this.el=document.querySelector(v);
-        };
-        q.prototype = 
-        {
-          on: function(event, handler, data){
-            var opt = {type: event, handler: handler, options: {capture:false, once:false}, data:data};
-            Qevents.set(this.el,event,handler,opt);
-          },
-          once: function(event, handler, data){
-            var opt = {type: event, handler: handler, options: {capture:false, once:true}, data:data};
-            Qevents.set(this.el,event,handler,opt);
-          },
-          off: function(event, handler, data){
-            var opt = {type: event, handler: handler, options: {capture:false, once:false},data:data};
-            Qevents.delete(this.el,event,handler,opt);
-          },
-
-          ready: function(handler){
-            this.on('DOMContentLoaded',handler,null);
-          },
-
-          find: function(sel){
-            return new q(this.el.querySelector(sel));
-          }
-        };
-
-        return q;
-
-      })();
-
-
-
-
-
+    <script type="text/javascript" src="src/qlib.js"></script>
+    <script type="text/javascript">      
       var fs = new WebDAV.Fs('https://rockstor.lan:7500','admin','open');
       var handler = function(e)
       {
+        e.preventDefault();
         var li = e.target.parentElement;
         if(li.classList.contains('active'))
           li.querySelector('ul').remove();
@@ -127,8 +46,8 @@
         dir.children().then(function(children)
         {
           var ul = '<ul>'+Format('<li class=${type}><a href=${url}>${name}</a></li>',children).join('')+'</ul>';
-          parentNode.innerHTML=ul;
-          Q(parentNode).find('ul>li.dir a').on('click', handler);//!!! only for one <a>
+          Q(parentNode).append(ul);
+          Q(parentNode).find('ul>li.dir a').on('click', handler);
         });
       };
 
