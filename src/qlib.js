@@ -86,10 +86,10 @@ var Q = (function()
   {//source: developer.mozilla.org/ru/docs/Web/API/ParentNode/append
     var items = Array.prototype.slice.call(arguments);
     var doc = document.createDocumentFragment();
-    var span = document.createElement("span");
-    items.forEach(appendFunc,span);
-    while (span.firstChild)
-      doc.appendChild(span.firstChild);
+    var el = document.createElement("null");
+    items.forEach(appendFunc,el);
+    while (el.firstChild)
+      doc.appendChild(el.firstChild);
     return doc;
   };
 
@@ -111,17 +111,21 @@ var Q = (function()
   {
     on: function(event, handler, data){
       this.el.forEach(function(el){Qevents.set(el,event,handler,{capture:false, once:false},data);});
+      return this;
     },
     once: function(event, handler, data){
       this.el.forEach(function(el){Qevents.set(el,event,handler,{capture:false, once:true},data);});
+      return this;
     },
     off: function(event, handler, data){
       this.el.forEach(function(el){Qevents.delete(el,event,handler,{capture:false, once:false},data);});
+      return this;
     },
 
     append: function(){
       var doc = appendToDocFrag.apply(null,arguments);
       this.el.forEach(function(el){el.append(doc.cloneNode(true));});
+      return this;
     },
     //remove: function(sel){
     //  this.on('DOMContentLoaded',handler,null);
@@ -131,6 +135,7 @@ var Q = (function()
 
     ready: function(handler){
       this.on('DOMContentLoaded',handler,null);
+      return this;
     },
 
     find: function(sel){
