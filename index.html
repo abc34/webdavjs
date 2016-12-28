@@ -42,12 +42,12 @@
 
       var loadDir = function(dir, parentNode)
       {
-        if(typeof parentNode === 'string') parentNode = document.querySelector(parentNode);
         dir.children().then(function(children)
         {
           var ul = '<ul>'+Format('<li class=${type}><a href=${url}>${name}</a></li>',children).join('')+'</ul>';
-          Q(parentNode).append(ul);
-          Q(parentNode).find('ul>li.dir a').on('click', handler);
+          Q(parentNode)
+            .append(ul)
+            .find('ul>li.dir a').on('click', handler);
         });
       };
 
