@@ -86,7 +86,7 @@ var Q = (function()
   {//source: developer.mozilla.org/ru/docs/Web/API/ParentNode/append
     var items = Array.prototype.slice.call(arguments);
     var doc = document.createDocumentFragment();
-    var el = document.createElement("null");
+    var el = document.createElement('null');
     items.forEach(appendFunc,el);
     while (el.firstChild)
       doc.appendChild(el.firstChild);
