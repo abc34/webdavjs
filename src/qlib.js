@@ -20,12 +20,11 @@ var Q = (function()
     {
       set: function(el,type,handler,options)
       {
-        var me=this,
-            eventHandler = (function(){return function(event)
+        var eventHandler = (function(me){return function(event)
             {
               options.once && me.delete(el,type,handler);
               return handler.call(this,event,options.data);
-            };})();
+            };})(this);
         options['handler'] = eventHandler;
         this.delete(el,type,handler);
         el.addEventListener(type,eventHandler,false);
