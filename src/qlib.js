@@ -11,52 +11,51 @@
 var Q = (function()
 {
   "use strict";
-  var Qevents=function(){};
-  Qevents.prototype =
+
+  var Qevents = (function()
   {
-    map: new WeakMap(),
-    set: function(el,event,handler,options,data)
+    var map_el = new WeakMap();
+    var Qevents = function(){};
+    Qevents.prototype =
     {
-      var opt = {'el': el, 'type': event, 'handler': handler, 'options': options, 'data':data};
-      this.has(el,event,handler,options) && this.delete(el,event,handler,options);
-      el.addEventListener(event,handler,options);
-      //if(options.once)return;
-      var map_ev = this.map.has(el)?this.map.get(el):new Map();
-      var map_ha = map_ev.has(event)?map_ev.get(event):new Map();
-      var map_op = map_ha.has(handler)?map_ha.get(handler):new Map();
-      map_op.set('1'+options.capture+'2'+options.once,opt);
-      map_ha.set(handler,map_op);
-      map_ev.set(event,map_ha);
-      this.map.set(el,map_ev);
-    },
-    get: function(el,event,handler,options)
-    {
-      var map = this.map.get(el); if(!map) return undefined;
-          map = this.map.get(event); if(!map) return undefined;
-          map = this.map.get(handler); if(!map) return undefined;
-      return map.get('1'+options.capture+'2'+options.once);
-    },
-    has: function(el,event,handler,options)
-    {
-      var map = this.map.get(el); if(!map) return false;
-          map = this.map.get(event); if(!map) return false;
-          map = this.map.get(handler); if(!map) return false;
-      return map.has('1'+options.capture+'2'+options.once);
-    },
-    delete: function(el,event,handler,options)
-    {
-      var map_ev = this.map.get(el); if(!map_ev) return;
-      var map_ha = map_ev.get(event); if(!map_ha) return;
-      var map_op = map_ha.get(handler); if(!map_op) return;
-      var opt = map_op.get('1'+options.capture+'2'+options.once);
-      el.removeEventListener(opt.type,opt.handler,opt.options);
-      map_op.delete('1'+options.capture+'2'+options.once);
-      map_op.size===0 && map_ha.delete(handler);
-      map_ha.size===0 && map_ev.delete(event);
-      map_ev.size===0 && this.map.delete(el);
-    }
-  };
-  Qevents=new Qevents();
+      set: function(el,type,handler,options)
+      {
+        var me=this,
+            eventHandler = (function(){return function(event)
+            {
+              options.once && me.delete(el,type,handler);
+              return handler.call(this,event,options.data);
+            };})();
+        options['handler'] = eventHandler;
+        this.delete(el,type,handler);
+        el.addEventListener(type,eventHandler,false);
+        var map_ev = map_el.get(el)   || new Map();
+        var map_ha = map_ev.get(type) || new Map();
+        map_ha.set(handler,options);
+        map_ev.set(type,map_ha);
+        map_el.set(el,map_ev);
+      },
+      get: function(el,type,handler)
+      {
+        var map = map_el.get(el); map = map && map.get(type);
+        return map && map.get(handler);
+      },
+      has: function(el,type,handler)
+      {
+        var map = map_el.get(el); map = map && map.get(type);
+        return !!map && map.has(handler);
+      },
+      delete: function(el,type,handler)
+      {
+        if(this.has(el,type,handler))
+        {
+          el.removeEventListener(type,this.get(el,type,handler)['handler'],false);
+          map_el.get(el).get(type).delete(handler);
+        }
+      }
+    };
+    return new Qevents();
+  })();
 
   var queryScoped = (function()
   {//source: github.com/lski/scoped-queryselectorall
@@ -86,7 +85,7 @@ var Q = (function()
   {//source: developer.mozilla.org/ru/docs/Web/API/ParentNode/append
     var items = Array.prototype.slice.call(arguments);
     var doc = document.createDocumentFragment();
-    var el = document.createElement('null');
+    var el = document.createElement("null");
     items.forEach(appendFunc,el);
     while (el.firstChild)
       doc.appendChild(el.firstChild);
@@ -106,19 +105,20 @@ var Q = (function()
     else if(!(sel instanceof NodeList || Array.isArray(sel)))
          if(sel) sel=[sel]; else sel=[null];
     this.el=sel;
+    this.each = this.el.forEach;
   };
   q.prototype = 
   {
-    on: function(event, handler, data){
-      this.el.forEach(function(el){Qevents.set(el,event,handler,{capture:false, once:false},data);});
+    on: function(type, handler, data){
+      this.el.forEach(function(el){Qevents.set(el,type,handler,{capture:false, once:false, data:data});});
       return this;
     },
-    once: function(event, handler, data){
-      this.el.forEach(function(el){Qevents.set(el,event,handler,{capture:false, once:true},data);});
+    once: function(type, handler, data){
+      this.el.forEach(function(el){Qevents.set(el,type,handler,{capture:false, once:true, data:data});});
       return this;
     },
-    off: function(event, handler, data){
-      this.el.forEach(function(el){Qevents.delete(el,event,handler,{capture:false, once:false},data);});
+    off: function(type, handler){
+      this.el.forEach(function(el){Qevents.delete(el,type,handler);});
       return this;
     },
 
@@ -134,7 +134,7 @@ var Q = (function()
 
 
     ready: function(handler){
-      this.on('DOMContentLoaded',handler,null);
+      this.once('DOMContentLoaded',handler);
       return this;
     },
 
