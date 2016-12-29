@@ -20,10 +20,13 @@ var Q = (function()
     {
       set: function(el,type,handler,options)
       {
-        var eventHandler = (function(me){return function(event)
+        var eventHandler = (function(me){
+            if(handler===false) return function(){return false;};
+            return function(event)
             {
               options.once && me.delete(el,type,handler);
-              return handler.call(this,event,options.data);
+              event.data=options.data;
+              return handler.call(this,event);
             };})(this);
         options['handler'] = eventHandler;
         this.delete(el,type,handler);
@@ -112,7 +115,7 @@ var Q = (function()
       this.el.forEach(function(el){Qevents.set(el,type,handler,{capture:false, once:false, data:data});});
       return this;
     },
-    once: function(type, handler, data){
+    one: function(type, handler, data){
       this.el.forEach(function(el){Qevents.set(el,type,handler,{capture:false, once:true, data:data});});
       return this;
     },
