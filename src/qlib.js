@@ -20,39 +20,38 @@ var Q = (function()
     {
       set: function(el,type,handler,options)
       {
-        var eventHandler = (function(me){
+        var map, eventHandler = (function(me){
             if(handler===false) return function(){return false;};
             return function(event)
             {
               options.once && me.delete(el,type,handler);
               event.data=options.data;
-              return handler.call(this,event);
+              return handler.apply(this,arguments);
             };})(this);
         options['handler'] = eventHandler;
         this.delete(el,type,handler);
         el.addEventListener(type,eventHandler,false);
-        var map_ev = map_el.get(el)   || new Map();
-        var map_ha = map_ev.get(type) || new Map();
-        map_ha.set(handler,options);
-        map_ev.set(type,map_ha);
-        map_el.set(el,map_ev);
+        map = map_el;
+        map=map[el] || (map[el]=new Map());
+        map=map[handler] || (map[handler]={});
+        map[type]=options;
       },
       get: function(el,type,handler)
       {
-        var map = map_el.get(el); map = map && map.get(type);
-        return map && map.get(handler);
+        var map = map_el[el]; map = map && map[handler];
+        return map && map[type];
       },
       has: function(el,type,handler)
       {
-        var map = map_el.get(el); map = map && map.get(type);
-        return !!map && map.has(handler);
+        var map = map_el[el]; map = map && map[handler];
+        return !!map && !!map[type];
       },
       delete: function(el,type,handler)
       {
         if(this.has(el,type,handler))
         {
           el.removeEventListener(type,this.get(el,type,handler)['handler'],false);
-          map_el.get(el).get(type).delete(handler);
+          delete map_el[el][handler][type];
         }
       }
     };
