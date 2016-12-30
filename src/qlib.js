@@ -20,31 +20,22 @@ var Q = (function()
     {
       set: function(el,type,handler,options)
       {
-        var map, eventHandler = (function(me){
-            if(handler===false) return function(){return false;};
-            return function(event)
-            {
-              options.once && me.delete(el,type,handler);
-              event.data=options.data;
-              return handler.apply(this,arguments);
-            };})(this);
-        options['handler'] = eventHandler;
         this.delete(el,type,handler);
-        el.addEventListener(type,eventHandler,false);
-        map = map_el;
+        el.addEventListener(type,options['handler'],false);
+        var map = map_el;
         map=map[el] || (map[el]=new Map());
         map=map[handler] || (map[handler]={});
         map[type]=options;
       },
       get: function(el,type,handler)
       {
-        var map = map_el[el]; map = map && map[handler];
-        return map && map[type];
+        var map=map_el;
+        return (map=map[el]) && (map=map[handler]) && map[type] || undefined;
       },
       has: function(el,type,handler)
       {
-        var map = map_el[el]; map = map && map[handler];
-        return !!map && !!map[type];
+        var map=map_el;
+        return (map=map[el]) && (map=map[handler]) && !!map[type] || false;
       },
       delete: function(el,type,handler)
       {
@@ -63,7 +54,7 @@ var Q = (function()
     var count=0;
     return function(sel,parent)
     {
-      if(parent===null)
+      if(!parent)
         return document.querySelectorAll(sel);
       var name='data-'+(+new Date())+'-selector-id',value=count++;
       parent.setAttribute(name,value);
@@ -92,6 +83,27 @@ var Q = (function()
       doc.appendChild(el.firstChild);
     return doc;
   };
+  var handlerFunc =
+  {
+    defaults: {'once':false,'data':null,'handler': null, 'isProcessed':true},
+    get: function(type,handler,options)
+    {
+      if('isProcessed' in options === false)
+        for(var key in this.defaults)
+          {!(key in options) && (options[key]=this.defaults[key]);}
+      if(handler === false)return function(event){event.preventDefault();event.stopPropagation();}
+      return function(event)
+      {
+        options.once && Qevents.delete(this,type,handler);
+        event.data=options.data;
+        if(handler.apply(this,arguments) === false)
+        {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+      }
+    }
+  };
 
 
 
@@ -104,19 +116,21 @@ var Q = (function()
     if(sel instanceof q) sel=sel.el;
     else if(typeof sel === 'string') sel=queryScoped(sel,parent);
     else if(!(sel instanceof NodeList || Array.isArray(sel)))
-         if(sel) sel=[sel]; else sel=[];
+         { sel=sel && [sel] || []; }
     this.el=sel;
     this.each = this.el.forEach;
   };
   q.prototype = 
   {
-    on: function(type, handler, data){
-      this.el.forEach(function(el){Qevents.set(el,type,handler,{capture:false, once:false, data:data});});
+    on: function(type, handler, options){
+      !options && (options=handlerFunc.defaults);
+      options['handler']=handlerFunc.get(type,handler,options);
+      this.el.forEach(function(el){Qevents.set(el,type,handler,options);});
       return this;
     },
-    one: function(type, handler, data){
-      this.el.forEach(function(el){Qevents.set(el,type,handler,{capture:false, once:true, data:data});});
-      return this;
+    one: function(type, handler, options){
+      (options || (options={}))['once']=true;
+      return this.on(type,handler,options);
     },
     off: function(type, handler){
       this.el.forEach(function(el){Qevents.delete(el,type,handler);});
@@ -128,15 +142,21 @@ var Q = (function()
       this.el.forEach(function(el){el.append(doc.cloneNode(true));});
       return this;
     },
-    //remove: function(sel){
-    //  this.on('DOMContentLoaded',handler,null);
-    //},
+    remove: function(sel){
+      if(arguments.length===0)
+        this.el.forEach(function(el){
+          el.parentNode.removeChild(el);
+        });
+      else 
+        this.el.forEach(function(el){
+          new q(queryScoped(sel,el)).remove();
+        });
+    },
     
 
 
     ready: function(handler){
-      this.once('DOMContentLoaded',handler);
-      return this;
+      return this.one('DOMContentLoaded',handler);
     },
 
     find: function(sel){
@@ -145,6 +165,5 @@ var Q = (function()
   };
 
   return q;
-
 })();
 
