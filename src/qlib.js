@@ -49,7 +49,7 @@ var Q = (function()
     return new Qevents();
   })();
 
-  var queryScoped = (function()
+  var queryScopedAll = (function()
   {//source: github.com/lski/scoped-queryselectorall
     var count=0;
     return function(sel,parent)
@@ -114,7 +114,7 @@ var Q = (function()
     else if(!(parent instanceof Element)) parent=null;
     
     if(sel instanceof q) sel=sel.el;
-    else if(typeof sel === 'string') sel=queryScoped(sel,parent);
+    else if(typeof sel === 'string') sel=queryScopedAll(sel,parent);
     else if(!(sel instanceof NodeList || Array.isArray(sel)))
          { sel=sel && [sel] || []; }
     this.el=sel;
@@ -149,7 +149,7 @@ var Q = (function()
         });
       else 
         this.el.forEach(function(el){
-          new q(queryScoped(sel,el)).remove();
+          new q(queryScopedAll(sel,el)).remove();
         });
     },
     
@@ -160,7 +160,7 @@ var Q = (function()
     },
 
     find: function(sel){
-      return new q(queryScoped(sel,this.el[0]));
+      return new q(queryScopedAll(sel,this.el[0]));
     }
   };
 
