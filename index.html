@@ -10,10 +10,10 @@
       var fs = new WebDAV.Fs('https://rockstor.lan:7500','admin','open');
       var handler = function(e)
       {
-        e.preventDefault();
         var li = e.target.parentElement;
         if(li.classList.contains('active'))
-          li.querySelector('ul').remove();
+          //li.querySelector('ul').remove();
+          Q(li).find('ul').remove('li');
         else
           loadDir(new fs.dir(e.target.href), li);
         li.classList.toggle('active');
