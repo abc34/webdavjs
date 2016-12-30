@@ -104,7 +104,7 @@ var Q = (function()
     if(sel instanceof q) sel=sel.el;
     else if(typeof sel === 'string') sel=queryScoped(sel,parent);
     else if(!(sel instanceof NodeList || Array.isArray(sel)))
-         if(sel) sel=[sel]; else sel=[null];
+         if(sel) sel=[sel]; else sel=[];
     this.el=sel;
     this.each = this.el.forEach;
   };
