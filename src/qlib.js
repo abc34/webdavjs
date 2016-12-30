@@ -85,7 +85,7 @@ var Q = (function()
   };
   var handlerFunc =
   {
-    defaults: {'once':false,'data':null,'handler': null, 'isProcessed':true},
+    defaults: {'once':false,'data':null,'handler':null,'isProcessed':true},
     get: function(type,handler,options)
     {
       if('isProcessed' in options === false)
@@ -123,13 +123,13 @@ var Q = (function()
   q.prototype = 
   {
     on: function(type, handler, options){
-      !options && (options=handlerFunc.defaults);
+      options = options || {};
       options['handler']=handlerFunc.get(type,handler,options);
       this.el.forEach(function(el){Qevents.set(el,type,handler,options);});
       return this;
     },
     one: function(type, handler, options){
-      (options || (options={}))['once']=true;
+      options = options || {'once': true};
       return this.on(type,handler,options);
     },
     off: function(type, handler){
