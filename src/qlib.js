@@ -14,7 +14,7 @@ var Q = (function()
 
   var Qevents = (function()
   {
-    var map_el = new WeakMap();
+    var map_the = new Map();//[type][handler][el][]
     var Qevents = function(){};
     Qevents.prototype =
     {
@@ -22,27 +22,31 @@ var Q = (function()
       {
         this.delete(el,type,handler);
         el.addEventListener(type,options['handler'],false);
-        var map = map_el;
-        map=map[el] || (map[el]=new Map());
-        map=map[handler] || (map[handler]={});
-        map[type]=options;
+        var map = map_the;
+        map=map.get(type)    || map.set(type,new Map()).get(type);
+        map=map.get(handler) || map.set(handler,new Map()).get(handler);
+        map.set(el,options);
+          console.log(map_the);
       },
       get: function(el,type,handler)
       {
-        var map=map_el;
-        return (map=map[el]) && (map=map[handler]) && map[type] || undefined;
+        var map=map_the;
+        return (map=map.get(type)) && (map=map.get(handler)) && map.get(el) || undefined;
       },
       has: function(el,type,handler)
       {
-        var map=map_el;
-        return (map=map[el]) && (map=map[handler]) && !!map[type] || false;
+        var map=map_the;
+        return (map=map.get(type)) && (map=map.get(handler)) && !!map.get(el) || false;
       },
       delete: function(el,type,handler)
       {
         if(this.has(el,type,handler))
         {
           el.removeEventListener(type,this.get(el,type,handler)['handler'],false);
-          delete map_el[el][handler][type];
+          map_the.get(type).get(handler).delete(el);
+          map_the.get(type).get(handler).size===0 && map_the.get(type).delete(handler);
+          map_the.get(type).size===0 && map_the.delete(type);
+          console.log(map_the);
         }
       }
     };
@@ -131,7 +135,8 @@ var Q = (function()
       return this;
     },
     one: function(type, handler, options){
-      if(arguments.length<3) options = {}; options['once']=true;
+      if(arguments.length<3) options = {};
+      options['once']=true;
       return this.on(type,handler,options);
     },
     off: function(type, handler){
