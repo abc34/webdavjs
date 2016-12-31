@@ -14,7 +14,7 @@ var Q = (function()
 
   var Qevents = (function()
   {
-    var map_the = new Map();//[type][handler][el][]
+    var map_the = new Map();//[type][handler][el]
     var Qevents = function(){};
     Qevents.prototype =
     {
@@ -24,9 +24,8 @@ var Q = (function()
         el.addEventListener(type,options['handler'],false);
         var map = map_the;
         map=map.get(type)    || map.set(type,new Map()).get(type);
-        map=map.get(handler) || map.set(handler,new Map()).get(handler);
+        map=map.get(handler) || map.set(handler,new WeakMap()).get(handler);
         map.set(el,options);
-          console.log(map_the);
       },
       get: function(el,type,handler)
       {
@@ -46,7 +45,6 @@ var Q = (function()
           map_the.get(type).get(handler).delete(el);
           map_the.get(type).get(handler).size===0 && map_the.get(type).delete(handler);
           map_the.get(type).size===0 && map_the.delete(type);
-          console.log(map_the);
         }
       }
     };
