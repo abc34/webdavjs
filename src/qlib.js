@@ -85,23 +85,25 @@ var Q = (function()
   };
   var handlerFunc =
   {
-    defaults: {'once':false,'data':null,'handler':null,'isProcessed':true},
-    get: function(type,handler,options)
+    defaults: {'once':false,'data':null,'handler':null},
+    set: function(type,handler,options)
     {
-      if('isProcessed' in options === false)
-        for(var key in this.defaults)
-          {!(key in options) && (options[key]=this.defaults[key]);}
-      if(handler === false)return function(event){event.preventDefault();event.stopPropagation();}
-      return function(event)
-      {
-        options.once && Qevents.delete(this,type,handler);
-        event.data=options.data;
-        if(handler.apply(this,arguments) === false)
-        {
-          event.preventDefault();
-          event.stopPropagation();
-        }
+      for(var key in this.defaults){
+        if(key in options)continue; options[key]=this.defaults[key];
       }
+      if(handler === false)
+        options['handler']=function(event){event.preventDefault();event.stopPropagation();};
+      else
+        options['handler']=function(event)
+        {
+          options.once && Qevents.delete(this,type,handler);
+          event.data=options.data;
+          if(handler.apply(this,arguments) === false)
+          {
+            event.preventDefault();
+            event.stopPropagation();
+          }
+        };
     }
   };
 
@@ -123,13 +125,13 @@ var Q = (function()
   q.prototype = 
   {
     on: function(type, handler, options){
-      options = options || {};
-      options['handler']=handlerFunc.get(type,handler,options);
+      if(arguments.length<3) options = {};
+      handlerFunc.set(type,handler,options);
       this.el.forEach(function(el){Qevents.set(el,type,handler,options);});
       return this;
     },
     one: function(type, handler, options){
-      options = options || {'once': true};
+      if(arguments.length<3) options = {}; options['once']=true;
       return this.on(type,handler,options);
     },
     off: function(type, handler){
