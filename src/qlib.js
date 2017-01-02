@@ -21,7 +21,7 @@ var Q = (function()
       set: function(el,type,handler,options)
       {
         this.delete(el,type,handler);
-        el.addEventListener(type,options['handler'],false);
+        el.addEventListener(type,options['handlerFn'],false);
         var map = map_the;
         map=map.get(type)    || map.set(type,new Map()).get(type);
         map=map.get(handler) || map.set(handler,new Map()).get(handler);
@@ -41,7 +41,7 @@ var Q = (function()
       {
         if(this.has(el,type,handler))
         {
-          el.removeEventListener(type,this.get(el,type,handler)['handler'],false);
+          //el.removeEventListener(type,this.get(el,type,handler)['handlerFn'],false);
           map_the.get(type).get(handler).delete(el);
           map_the.get(type).get(handler).size===0 && map_the.get(type).delete(handler);
           map_the.get(type).size===0 && map_the.delete(type);
@@ -87,26 +87,28 @@ var Q = (function()
   };
   var handlerFunc =
   {
-    defaults: {'once':false,'data':null,'handler':null},
-    defaultFn: function(event){event.preventDefault();event.stopPropagation();},
-    set: function(type,handler,options)
+    defaults: {'once':false,'data':null,'handlerFn':null,'isDisabled':false},
+    defaultFn: function(){return false;},
+    set: function(el,type,handler,options)
     {
-      for(var key in this.defaults){
-        if(key in options)continue; options[key]=this.defaults[key];
-      }
+      var handlerFn=handler;
       if(handler === false)
-        options['handler']=this.defaultFn;
-      else
-        options['handler']=function(event)
+        handlerFn=this.defaultFn;
+      options=Object.assign(Object.assign({},this.defaults),options);
+      options['handlerFn']=function(event)
+      {
+        if(options.isDisabled===true)return;
+        options.once && (options.isDisabled=true) &&
+          !event.target.removeEventListener(event.type,arguments.calee,false) &&
+          Qevents.delete(this,type,handler);
+        event.data=options.data;
+        if(handlerFn.apply(this,arguments) === false)
         {
-          options.once && Qevents.delete(this,type,handler);
-          event.data=options.data;
-          if(handler.apply(this,arguments) === false)
-          {
-            event.preventDefault();
-            event.stopPropagation();
-          }
-        };
+          event.preventDefault();
+          event.stopPropagation();
+        }
+      };
+      Qevents.set(el,type,handler,options);
     }
   };
 
@@ -123,14 +125,11 @@ var Q = (function()
     else if(!(sel instanceof NodeList || Array.isArray(sel)))
          { sel=sel && [sel] || []; }
     this.el=sel;
-    this.prototype.each = this.el.forEach.bind(this.el);
   };
   q.prototype = 
   {
     on: function(type, handler, options){
-      if(arguments.length<3) options = {};
-      handlerFunc.set(type,handler,options);
-      this.el.forEach(function(el){Qevents.set(el,type,handler,options);});
+      this.el.forEach(function(el){handlerFunc.set(el,type,handler,options);});
       return this;
     },
     one: function(type, handler, options){
