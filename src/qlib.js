@@ -24,7 +24,7 @@ var Q = (function()
         el.addEventListener(type,options['handler'],false);
         var map = map_the;
         map=map.get(type)    || map.set(type,new Map()).get(type);
-        map=map.get(handler) || map.set(handler,new WeakMap()).get(handler);
+        map=map.get(handler) || map.set(handler,new Map()).get(handler);
         map.set(el,options);
       },
       get: function(el,type,handler)
@@ -88,13 +88,14 @@ var Q = (function()
   var handlerFunc =
   {
     defaults: {'once':false,'data':null,'handler':null},
+    defaultFn: function(event){event.preventDefault();event.stopPropagation();},
     set: function(type,handler,options)
     {
       for(var key in this.defaults){
         if(key in options)continue; options[key]=this.defaults[key];
       }
       if(handler === false)
-        options['handler']=function(event){event.preventDefault();event.stopPropagation();};
+        options['handler']=this.defaultFn;
       else
         options['handler']=function(event)
         {
@@ -122,7 +123,7 @@ var Q = (function()
     else if(!(sel instanceof NodeList || Array.isArray(sel)))
          { sel=sel && [sel] || []; }
     this.el=sel;
-    this.each = this.el.forEach;
+    this.prototype.each = this.el.forEach.bind(this.el);
   };
   q.prototype = 
   {
@@ -150,7 +151,7 @@ var Q = (function()
     remove: function(sel){
       if(arguments.length===0)
         this.el.forEach(function(el){
-          el.parentNode.removeChild(el);
+          delete el.parentNode.removeChild(el);
         });
       else 
         this.el.forEach(function(el){
