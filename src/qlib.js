@@ -21,7 +21,7 @@ var Q = (function()
       set: function(el,type,handler,options)
       {
         this.delete(el,type,handler);
-        el.addEventListener(type,options['handlerFn'],false);
+        //el.addEventListener(type,options['handlerFn'],false);
         var map = map_the;
         map=map.get(type)    || map.set(type,new Map()).get(type);
         map=map.get(handler) || map.set(handler,new Map()).get(handler);
@@ -91,9 +91,8 @@ var Q = (function()
     defaultFn: function(){return false;},
     set: function(el,type,handler,options)
     {
-      var handlerFn=handler;
       if(handler === false)
-        handlerFn=this.defaultFn;
+        handler=this.defaultFn;
       options=Object.assign(Object.assign({},this.defaults),options);
       options['handlerFn']=function(event)
       {
@@ -102,12 +101,13 @@ var Q = (function()
           !event.target.removeEventListener(event.type,arguments.calee,false) &&
           Qevents.delete(this,type,handler);
         event.data=options.data;
-        if(handlerFn.apply(this,arguments) === false)
+        if(handler.apply(this,arguments) === false)
         {
           event.preventDefault();
           event.stopPropagation();
         }
       };
+      el.addEventListener(type,options['handlerFn'],false);
       Qevents.set(el,type,handler,options);
     }
   };
