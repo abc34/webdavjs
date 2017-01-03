@@ -14,14 +14,15 @@ var Q = (function()
 
   var Qevents = (function()
   {
-    var map_the = new Map();//[type][handler][el]
+    var map_tnhe = new Map();//[type][ns][handler][el]=>options
+    var fn1=function(v){this.push(v);};
+    var fn2=function(v){var t=this[0],r=this[1];if(t) (t=v.get(t))&&r.push(t);else v.forEach(fn1,r);};
     var Qevents = function(){};
     Qevents.prototype =
     {
       set: function(el,type,handler,options)
       {
         this.delete(el,type,handler);
-        //el.addEventListener(type,options['handlerFn'],false);
         var map = map_the;
         map=map.get(type)    || map.set(type,new Map()).get(type);
         map=map.get(handler) || map.set(handler,new Map()).get(handler);
@@ -29,8 +30,15 @@ var Q = (function()
       },
       get: function(el,type,handler)
       {
+        if(type===null || handler===null || el===null)
+        {
+          var res=[map_the],
+          fn=function(t){var r=[];res.forEach(fn2,[t,r]);res=r;};
+          [type,handler,el].forEach(fn);
+          return res;
+        }
         var map=map_the;
-        return (map=map.get(type)) && (map=map.get(handler)) && map.get(el) || undefined;
+        return (map=map.get(type)) && (map=map.get(handler)) && map.has(el) && [map.get(el)] || [];
       },
       has: function(el,type,handler)
       {
@@ -41,7 +49,6 @@ var Q = (function()
       {
         if(this.has(el,type,handler))
         {
-          //el.removeEventListener(type,this.get(el,type,handler)['handlerFn'],false);
           map_the.get(type).get(handler).delete(el);
           map_the.get(type).get(handler).size===0 && map_the.get(type).delete(handler);
           map_the.get(type).size===0 && map_the.delete(type);
@@ -85,21 +92,18 @@ var Q = (function()
       doc.appendChild(el.firstChild);
     return doc;
   };
-  var handlerFunc =
+  var eventListener =
   {
-    defaults: {'once':false,'data':null,'handlerFn':null,'isDisabled':false},
+    defaultProp: {'once':false,'data':null,'handlerFn':null,'isDisabled':false, 'removeFn':null},
     defaultFn: function(){return false;},
-    set: function(el,type,handler,options)
+    add: function(el,type,handler,options)
     {
-      if(handler === false)
-        handler=this.defaultFn;
-      options=Object.assign(Object.assign({},this.defaults),options);
+      if(handler===false) handler=this.defaultFn;
+      options=Object.assign(Object.assign({},this.defaultProp),options);
       options['handlerFn']=function(event)
       {
         if(options.isDisabled===true)return;
-        options.once && (options.isDisabled=true) &&
-          !event.target.removeEventListener(event.type,arguments.calee,false) &&
-          Qevents.delete(this,type,handler);
+        options.once && options.removeFn();
         event.data=options.data;
         if(handler.apply(this,arguments) === false)
         {
@@ -107,8 +111,22 @@ var Q = (function()
           event.stopPropagation();
         }
       };
+      options['removeFn']=function()
+      {
+        el.removeEventListener(type,options['handlerFn'],false);
+        Qevents.delete(el,type,handler);
+      };
       el.addEventListener(type,options['handlerFn'],false);
       Qevents.set(el,type,handler,options);
+    },
+    remove: function(el,type,handler)
+    {
+      if(handler===false) handler=this.defaultFn;
+      Qevents.get(el||null,type||null,handler||null).forEach(function(options)
+      {
+        options.removeFn();
+      });
+
     }
   };
 
@@ -122,23 +140,24 @@ var Q = (function()
     
     if(sel instanceof q) sel=sel.el;
     else if(typeof sel === 'string') sel=queryScopedAll(sel,parent);
-    else if(!(sel instanceof NodeList || Array.isArray(sel)))
-         { sel=sel && [sel] || []; }
+    else if(sel instanceof Object === false) sel=[];
+    else if('forEach' in sel === false) sel=[sel];
     this.el=sel;
   };
   q.prototype = 
   {
+    each: function(){return this.el.forEach.apply(this.el,arguments);},
     on: function(type, handler, options){
-      this.el.forEach(function(el){handlerFunc.set(el,type,handler,options);});
+      this.each(function(el){eventListener.add(el,type,handler,options);});
       return this;
     },
     one: function(type, handler, options){
-      if(arguments.length<3) options = {};
+      options = options || {};
       options['once']=true;
       return this.on(type,handler,options);
     },
     off: function(type, handler){
-      this.el.forEach(function(el){Qevents.delete(el,type,handler);});
+      this.each(function(el){eventListener.remove(el,type,handler);});
       return this;
     },
 
@@ -151,6 +170,7 @@ var Q = (function()
       if(arguments.length===0)
         this.el.forEach(function(el){
           delete el.parentNode.removeChild(el);
+          //eventListener.remove(el);
         });
       else 
         this.el.forEach(function(el){
@@ -169,6 +189,7 @@ var Q = (function()
     }
   };
 
+  q.prototype.eventListener=eventListener;//debug
   return q;
 })();
 
