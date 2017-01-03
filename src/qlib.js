@@ -42,7 +42,7 @@ var Q = (function()
       has: function(el,type,handler)
       {
         var map=map_the;
-        return (map=map.get(type)) && (map=map.get(handler)) && !!map.get(el) || false;
+        return (map=map.get(type)) && (map=map.get(handler)) && map.has(el) || false;
       },
       delete: function(el,type,handler)
       {
