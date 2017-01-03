@@ -32,8 +32,6 @@ var Q = (function()
       {
         if(type===null || handler===null || el===null)
         {
-         
-  
           var res=[map_the],fn=function(t){var r=[];res.forEach(fn2,[t,r]);res=r;};
           [type,handler,el].forEach(fn);
           return res;
@@ -95,8 +93,9 @@ var Q = (function()
   };
   var eventListener =
   {
-    defaultProp: {'once':false,'data':null,'handlerFn':null,'isDisabled':false, 'removeFn':null},
+    defaultProp: {'once':false,'data':null,'handlerFn':null,'isDisabled':false,'removeFn':null},
     defaultFn: function(){return false;},
+    removeFn: function(options){options.removeFn();},
     add: function(el,type,handler,options)
     {
       if(handler===false) handler=this.defaultFn;
@@ -123,11 +122,7 @@ var Q = (function()
     remove: function(el,type,handler)
     {
       if(handler===false) handler=this.defaultFn;
-      Qevents.get(el||null,type||null,handler||null).forEach(function(options)
-      {
-        options.removeFn();
-      });
-
+      Qevents.get(el||null,type||null,handler||null).forEach(this.removeFn);
     }
   };
 
