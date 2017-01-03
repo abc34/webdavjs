@@ -16,7 +16,7 @@ var Q = (function()
   {
     var map_the = new Map();//[type][handler][el]=>options
     var fn1=function(v){this.push(v);};
-    var fn2=function(v){var t=this[0],r=this[1];if(t) (t=v.get(t))&&r.push(t);else v.forEach(fn1,r);};
+    var fn2=function(v){var t=this[0],r=this[1];if(t)(t=v.get(t))&&r.push(t);else v.forEach(fn1,r);};
     var Qevents = function(){};
     Qevents.prototype =
     {
@@ -32,8 +32,9 @@ var Q = (function()
       {
         if(type===null || handler===null || el===null)
         {
-          var res=[map_the];
-          var fn=function(t){var r=[];res.forEach(fn2,[t,r]);res=r;};
+         
+  
+          var res=[map_the],fn=function(t){var r=[];res.forEach(fn2,[t,r]);res=r;};
           [type,handler,el].forEach(fn);
           return res;
         }
