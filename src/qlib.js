@@ -17,32 +17,36 @@ var Q = (function()
     var map_the = new Map();//[type][handler][el]=>options
     var fn1=function(v){this.push(v);};
     var fn2=function(v){var t=this[0],r=this[1];if(t)(t=v.get(t))&&r.push(t);else v.forEach(fn1,r);};
+    var fn3=function(t){var r=[];this.res.forEach(fn2,[t,r]);this.res=r;};
+    var fn=function(t){var map=this.map;this.map=map.has(t) && map.get(t) || map.set(t,new Map()).get(t);};
+    var fn0=function(t){var map=this.map;this.map=map && map.get(t) || false;};
     var Qevents = function(){};
     Qevents.prototype =
     {
       set: function(el,type,handler,options)
       {
         this.delete(el,type,handler);
-        var map = map_the;
-        map=map.get(type)    || map.set(type,new Map()).get(type);
-        map=map.get(handler) || map.set(handler,new Map()).get(handler);
-        map.set(el,options);
+        var arg = {'map':map_the};
+        [type,handler].forEach(fn,arg);arg.map.set(el,options);
+        return this;
       },
       get: function(el,type,handler)
       {
-        if(type===null || handler===null || el===null)
+        //if(type===null || handler===null || el===null)
         {
-          var res=[map_the],fn=function(t){var r=[];res.forEach(fn2,[t,r]);res=r;};
-          [type,handler,el].forEach(fn);
-          return res;
+          var arg={'res':[map_the]};
+          [type,handler,el].forEach(fn3,arg);
+          return arg.res;
         }
-        var map=map_the;
-        return (map=map.get(type)) && (map=map.get(handler)) && map.has(el) && [map.get(el)] || [];
+        //var map=map_the;
+        //return (map=map.get(type)) && (map=map.get(handler)) && map.has(el) && [map.get(el)] || [];
       },
       has: function(el,type,handler)
       {
-        var map=map_the;
-        return (map=map.get(type)) && (map=map.get(handler)) && map.has(el) || false;
+        var arg={'map':map_the};[type,handler].forEach(fn0,arg);
+        return arg.map && arg.map.has(el);
+        //var map=map_the;
+        //return (map=map.get(type)) && (map=map.get(handler)) && map.has(el) || false;
       },
       delete: function(el,type,handler)
       {
