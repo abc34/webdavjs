@@ -16,7 +16,16 @@ var Q = (function()
   {
     var map_the = new Map();//[type][handler][el]=>options
     var fn1=function(v){this.push(v);};
-    var fn2=function(v){var t=this[0],r=this[1];if(t===null)v.forEach(fn1,r);else (t=v.get(t))&&r.push(t);};
+    var fn2=function(v){
+      var t=this[0],r=this[1],m;
+      if(t===null)v.forEach(fn1,r);
+      else (m=v.get(t))&&r.push(m);
+      //приведение к нужному типу, null не string !
+      if(m.keyType==='string' && typeof t!=='string'){
+        var arg={res:t};
+        [null,t].forEach(fn3,arg);
+      }
+    };
     var fn3=function(t){var r=[];this.res.forEach(fn2,[t,r]);this.res=r;};
     var fn=function(t){var map=this.map;this.map=map.has(t) && map.get(t) || map.set(t,new Map()).get(t);};
     var fn0=function(t){var map=this.map;this.map=map && map.get(t) || false;};
