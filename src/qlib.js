@@ -15,20 +15,58 @@ var Q = (function()
   var Qevents = (function()
   {
     var map_the = new Map();//[type][handler][el]=>options
-    var fn1=function(v){this.push(v);};
-    var fn2=function(v){
-      var t=this[0],r=this[1],m;
-      if(t===null)v.forEach(fn1,r);
-      else (m=v.get(t))&&r.push(m);
-      //приведение к нужному типу, null не string !
-      if(m.keyType==='string' && typeof t!=='string'){
-        var arg={res:t};
-        [null,t].forEach(fn3,arg);
+    var fn0=function(t){var map=this.map;map.keyType=typeof t;this.map=map.has(t)&&map.get(t)||map.set(t,new Map()).get(t);};
+    var fn1=function(t){var r=[];this['maps'].forEach(fn2,[t,r]);this['maps']=r;};
+    var fn2=function(v)
+    {//get map=v[t]
+      var t=this[0],r=this[1];
+      if(typeof t!=='string')
+      {//приведение при v.keyType==='string'
+        //???
+      }
+      if(t===null)
+        v.forEach(fn3,r);
+      else
+        (t=v.get(t))&&r.push(t);
+    };
+    var fn3=function(v){this.push(v);};
+    var fn4=function(t){var map=this.map;this.map=map&&map.get(t)||false;};
+    
+
+
+
+
+    var find=function(key,type,maps_in,maps_out)
+    {//maps=[maps0,maps1]
+      var m0=maps_in[0],m1=maps_in[1];
+      var r0=maps_out[0],r1=maps_out[1],mType=m0[0].keyType;
+      if(type===mType)
+      {//cast all m1=>m0
+        find(null,type,[m1,[]],[m0,[]]);
+      }
+
+      for(var i in m0)
+      {
+        if(key===null)
+          m0[i].forEach(fn2);
+        else
+          fn2(m0[i].get(t));
+      }
+      return;
+
+
+      var fn2=function fn2(m)
+      {
+        if(!(m instanceof Map))return;
+        if(m.keyType===type)
+          r[1].push(m);
+        else
+          r[0].push(m);
       }
     };
-    var fn3=function(t){var r=[];this.res.forEach(fn2,[t,r]);this.res=r;};
-    var fn=function(t){var map=this.map;this.map=map.has(t) && map.get(t) || map.set(t,new Map()).get(t);};
-    var fn0=function(t){var map=this.map;this.map=map && map.get(t) || false;};
+
+
+
     var Qevents = function(){};
     Qevents.prototype =
     {
@@ -36,23 +74,24 @@ var Q = (function()
       {
         this.delete(el,type,handler);
         var arg = {'map':map_the};
-        [type,handler].forEach(fn,arg);arg.map.set(el,options);
+        [type,handler].forEach(fn0,arg);arg.map.set(el,options);
+        console.log(map_the);
         return this;
       },
       get: function(el,type,handler)
       {
         //if(type===null || handler===null || el===null)
         {
-          var arg={'res':[map_the]};
-          [type,handler,el].forEach(fn3,arg);
-          return arg.res;
+          var arg={'maps':[map_the]};
+          [type,handler,el].forEach(fn1,arg);
+          return arg.maps;
         }
         //var map=map_the;
         //return (map=map.get(type)) && (map=map.get(handler)) && map.has(el) && [map.get(el)] || [];
       },
       has: function(el,type,handler)
       {
-        var arg={'map':map_the};[type,handler].forEach(fn0,arg);
+        var arg={'map':map_the};[type,handler].forEach(fn4,arg);
         return arg.map && arg.map.has(el);
         //var map=map_the;
         //return (map=map.get(type)) && (map=map.get(handler)) && map.has(el) || false;
