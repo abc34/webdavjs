@@ -12,102 +12,107 @@ var Q = (function()
 {
   "use strict";
 
-  var Qevents = (function()
-  {
-    var map_the = new Map();//[type][handler][el]=>options
-    var fn0=function(t){var map=this.map;map.keyType=typeof t;this.map=map.has(t)&&map.get(t)||map.set(t,new Map()).get(t);};
-    var fn1=function(t){var r=[];this['maps'].forEach(fn2,[t,r]);this['maps']=r;};
-    var fn2=function(v)
-    {//get map=v[t]
-      var t=this[0],r=this[1];
-      if(typeof t!=='string')
-      {//приведение при v.keyType==='string'
-        //???
-      }
-      if(t===null)
-        v.forEach(fn3,r);
-      else
-        (t=v.get(t))&&r.push(t);
-    };
-    var fn3=function(v){this.push(v);};
-    var fn4=function(t){var map=this.map;this.map=map&&map.get(t)||false;};
+    //MapTree
+    var TreeMap=(function()
+    {
+      var vKey=Object.create(null);//value key
+      var aKey=Object.create(null);//all selector key
+      var fn0=function(t){var map=this.map;this.map=map&&map.get(t)||map.set(t,new Map()).get(t);};
+      var fn1=function(key){if(key===aKey)return false;this.map=this.map.get(key)||null;return this.map&&true||false;};
+      var fn2=function(t,key){if(Object.is(key,vKey))this.r.push(t);else t.forEach(fn2,this);};
+      var fn3=function(key){if(key===aKey)return false;this.r.push(this.map);this.map=this.map.get(key)||null;return this.map&&true||false;};
+      function TreeMap(){if(this instanceof TreeMap)this.init();else return new TreeMap();};
+      TreeMap.ALL=aKey;//all selector key (like '*')
+      TreeMap.prototype=
+      {
+        map: null,
+        init: function(){this.map=new Map();},
+        set: function(keys,value)
+        {
+          if(!Array.isArray(keys)||keys.length===0)return this;
+          var arg={'map':this.map};
+          keys.forEach(fn0,arg);
+          arg.map.set(vKey,value);
+          return this;
+        },
+        get: function(keys)
+        {
+          if(!Array.isArray(keys)||keys.length===0)return[];
+          var arg={'map':this.map,'r':[],'m':[]};
+          keys.every(fn1,arg);
+          arg.map&&fn2.call(arg,arg.map);
+          return arg.r;
+        },
+        has: function(keys)
+        {
+          if(!Array.isArray(keys)||keys.length===0)return false;
+          var arg={'map':this.map};
+          keys.every(fn1,arg);
+          return arg.map&&true||false;
+        },
+        delete: function(keys)
+        {
+          if(!Array.isArray(keys)||keys.length===0)return false;
+          var arg={'map':this.map,'r':[]};
+          keys.every(fn3,arg);
+          arg.map&&arg.map.clear();
+          for(var r=arg.r,i=r.length-1;i>=0;i--){r[i].delete(keys[i]);if(r[i].size!==0)break;}
+          return true;
+        },
+        hasValue: function(keys)
+        {
+          if(!Array.isArray(keys)||keys.length===0)return false;
+          var arg={'map':this.map};
+          keys.every(fn1,arg);
+          return arg.map&&arg.map.has(vKey)||false;
+        },
+        getValue: function(keys)
+        {
+          if(!Array.isArray(keys)||keys.length===0)return;
+          var arg={'map':this.map};
+          keys.every(fn1,arg);
+          if(arg.map===null)return;
+          return arg.map.get(vKey);
+        }
+      };
+      return TreeMap;
+    })();
+
+
+
+//*
+    var r, map=new TreeMap();
+    map.set(['a'],['a']);
+    map.set(['a','b'],['b']);
+    //map.set(['a','b1'],['b1']);
+    map.set(['a','b','c'],['c']);
+    map.set(['a','b','c1'],['c1']);
+    debugger;
+    r=map.get([TreeMap.ALL]);
+    r=map.getValue(['a']);
+    r=map.getValue(['a','b']);
+    r=map.getValue(['a','c']);
+    r=map.getValue([TreeMap.ALL]);
+    r=map.hasValue(['a','b']);
+    r=map.hasValue(['a','b','c2']);
+    r=map.has(['a','b','c1']);
+    r=map.has(['a','b','c2']);
+    r=map.has(['a']);
+    r=map.has([TreeMap.ALL]);
+    map.delete(['a','b']);
+    console.log(map);
+//*/
+    return;
+
+  //set: function(el,type,handler,options)
+  var Qevents = new TreeMap();
     
 
 
 
 
-    var find=function(key,type,maps_in,maps_out)
-    {//maps=[maps0,maps1]
-      var m0=maps_in[0],m1=maps_in[1];
-      var r0=maps_out[0],r1=maps_out[1],mType=m0[0].keyType;
-      if(type===mType)
-      {//cast all m1=>m0
-        find(null,type,[m1,[]],[m0,[]]);
-      }
-
-      for(var i in m0)
-      {
-        if(key===null)
-          m0[i].forEach(fn2);
-        else
-          fn2(m0[i].get(t));
-      }
-      return;
 
 
-      var fn2=function fn2(m)
-      {
-        if(!(m instanceof Map))return;
-        if(m.keyType===type)
-          r[1].push(m);
-        else
-          r[0].push(m);
-      }
-    };
-
-
-
-    var Qevents = function(){};
-    Qevents.prototype =
-    {
-      set: function(el,type,handler,options)
-      {
-        this.delete(el,type,handler);
-        var arg = {'map':map_the};
-        [type,handler].forEach(fn0,arg);arg.map.set(el,options);
-        console.log(map_the);
-        return this;
-      },
-      get: function(el,type,handler)
-      {
-        //if(type===null || handler===null || el===null)
-        {
-          var arg={'maps':[map_the]};
-          [type,handler,el].forEach(fn1,arg);
-          return arg.maps;
-        }
-        //var map=map_the;
-        //return (map=map.get(type)) && (map=map.get(handler)) && map.has(el) && [map.get(el)] || [];
-      },
-      has: function(el,type,handler)
-      {
-        var arg={'map':map_the};[type,handler].forEach(fn4,arg);
-        return arg.map && arg.map.has(el);
-        //var map=map_the;
-        //return (map=map.get(type)) && (map=map.get(handler)) && map.has(el) || false;
-      },
-      delete: function(el,type,handler)
-      {
-        if(this.has(el,type,handler))
-        {
-          map_the.get(type).get(handler).delete(el);
-          map_the.get(type).get(handler).size===0 && map_the.get(type).delete(handler);
-          map_the.get(type).size===0 && map_the.delete(type);
-        }
-      }
-    };
-    return new Qevents();
-  })();
 
   var queryScopedAll = (function()
   {//source: github.com/lski/scoped-queryselectorall
@@ -166,15 +171,15 @@ var Q = (function()
       options['removeFn']=function()
       {
         el.removeEventListener(type,options['handlerFn'],false);
-        Qevents.delete(el,type,handler);
+        Qevents.delete([type,handler,el]);
       };
       el.addEventListener(type,options['handlerFn'],false);
-      Qevents.set(el,type,handler,options);
+      Qevents.set([type,handler,el],options);
     },
     remove: function(el,type,handler)
     {
       if(handler===false) handler=this.defaultFn;
-      Qevents.get(el||null,type||null,handler||null).forEach(this.removeFn);
+      Qevents.get([type||TreeMap.ALL,handler||TreeMap.ALL,el||TreeMap.ALL]).forEach(this.removeFn);
     }
   };
 
