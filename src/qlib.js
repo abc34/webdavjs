@@ -12,112 +12,112 @@ var Q = (function()
 {
   "use strict";
 
-    //MapTree
-    var TreeMap=(function()
+  //MapTree
+  var TreeMap=(function()
+  {
+    var vKey=Object.create(null);//value selector key
+    var aKey=Object.create(null);//all selector key
+    var fn0=function(key){var map=this.map,t=map&&map.get(key)||map.set(key,new Map()).get(key);t._parent=this.map;t._key=key;this.map=t;};
+    var fn1=function(key){
+      var m=[],t;
+      if(Object.is(key,aKey))
+        for(t in this.map)
+          (t=this.map[t])&&t.forEach(fn2,m);
+      else
+        for(t in this.map)
+          (t=this.map[t])&&t.has(key)&&m.push(t.get(key));
+      this.map=m;
+      return m.length>0;
+    };
+    var fn2=function(t,key){if(Object.is(key,vKey)===false)this.push(t);};
+    var fn3=function(t,key){if(Object.is(key,vKey))this.push(t);else t.forEach(fn3,this);};
+    var fn4=function(t){t.clear();while(t.size===0&&t._parent){t._parent.delete(t._key);t=t._parent;}};
+    function TreeMap(){if(this instanceof TreeMap)this.init();else return new TreeMap();};
+    TreeMap.ALL=aKey;//all selector (like '*')
+    TreeMap.prototype=
     {
-      var vKey=Object.create(null);//value selector key
-      var aKey=Object.create(null);//all selector key
-      var fn0=function(key){var map=this.map,t=map&&map.get(key)||map.set(key,new Map()).get(key);t._parent=this.map;t._key=key;this.map=t;};
-      var fn1=function(key){
-        var m=[],t;
-        if(Object.is(key,aKey))
-          for(t in this.map)
-            (t=this.map[t])&&t.forEach(fn2,m);
-        else
-          for(t in this.map)
-            (t=this.map[t])&&t.has(key)&&m.push(t.get(key));
-        this.map=m;
-        return m.length>0;
-      };
-      var fn2=function(t,key){if(Object.is(key,vKey)===false)this.push(t);};
-      var fn3=function(t,key){if(Object.is(key,vKey))this.push(t);else t.forEach(fn3,this);};
-      var fn4=function(t){t.clear();while(t.size===0&&t._parent){t._parent.delete(t._key);t=t._parent;}};
-      function TreeMap(){if(this instanceof TreeMap)this.init();else return new TreeMap();};
-      TreeMap.ALL=aKey;//all selector (like '*')
-      TreeMap.prototype=
+      map: null,
+      init: function(){this.map=new Map();},
+      set: function(keys,value)
       {
-        map: null,
-        init: function(){this.map=new Map();},
-        set: function(keys,value)
-        {
-          if(!Array.isArray(keys)||keys.length===0)return this;
-          var arg={'map':this.map};
-          keys.forEach(fn0,arg);
-          arg.map.set(vKey,value);
-          return this;
-        },
-        get: function(keys)
-        {
-          if(!Array.isArray(keys)||keys.length===0)return[];
-          var arg={'map':[this.map]},r=[];
-          if(keys.every(fn1,arg))
-            arg.map.forEach(fn3,r);
-          return r;
-        },
-        has: function(keys)
-        {
-          if(!Array.isArray(keys)||keys.length===0)return false;
-          var arg={'map':[this.map]};
-          return keys.every(fn1,arg);
-        },
-        delete: function(keys)
-        {
-          if(!Array.isArray(keys)||keys.length===0)return[];
-          var arg={'map':[this.map]};
-          if(keys.every(fn1,arg))
-            arg.map.forEach(fn4);
-          return true;
-        },
-        hasValue: function(keys)
-        {
-          if(!Array.isArray(keys)||keys.length===0)return false;
-          var arg={'map':[this.map]};
-          return keys.every(fn1,arg)&&arg.map[0].has(vKey);
-        },
-        getValue: function(keys)
-        {
-          if(!Array.isArray(keys)||keys.length===0)return;
-          var arg={'map':[this.map]};
-          if(keys.every(fn1,arg))
-            return arg.map[0].get(vKey);
-        }
-      };
-      return TreeMap;
-    })();
+        if(!Array.isArray(keys)||keys.length===0)return this;
+        var arg={'map':this.map};
+        keys.forEach(fn0,arg);
+        arg.map.set(vKey,value);
+        return this;
+      },
+      get: function(keys)
+      {
+        if(!Array.isArray(keys)||keys.length===0)return[];
+        var arg={'map':[this.map]},r=[];
+        if(keys.every(fn1,arg))
+          arg.map.forEach(fn3,r);
+        return r;
+      },
+      has: function(keys)
+      {
+        if(!Array.isArray(keys)||keys.length===0)return false;
+        var arg={'map':[this.map]};
+        return keys.every(fn1,arg);
+      },
+      delete: function(keys)
+      {
+        if(!Array.isArray(keys)||keys.length===0)return[];
+        var arg={'map':[this.map]};
+        if(keys.every(fn1,arg))
+          arg.map.forEach(fn4);
+        return true;
+      },
+      hasValue: function(keys)
+      {
+        if(!Array.isArray(keys)||keys.length===0)return false;
+        var arg={'map':[this.map]};
+        return keys.every(fn1,arg)&&arg.map[0].has(vKey);
+      },
+      getValue: function(keys)
+      {
+        if(!Array.isArray(keys)||keys.length===0)return;
+        var arg={'map':[this.map]};
+        if(keys.every(fn1,arg))
+          return arg.map[0].get(vKey);
+      }
+    };
+    return TreeMap;
+  })();
 
 
 
 /*
-    var r, map=new TreeMap();
-    map.set(['a'],['a']);
-    //map.set(['a','b'],['b']);
-    //map.set(['a','b1'],['b1']);
-    map.set(['a','b','c'],['c']);
-    map.set(['a','b','c1'],['c1']);
-    map.set(['a','c','c1'],['cc1']);
-    map.set(['b','c','c2'],['cc2']);
-    debugger;
-    r=map.get(['a']);
-    r=map.get(['a','b']);
-    r=map.get(['a',TreeMap.ALL]);
-    r=map.get([TreeMap.ALL]);
-    r=map.getValue(['a']);
-    r=map.getValue(['a','b']);
-    r=map.getValue(['a','c']);
-    r=map.getValue([TreeMap.ALL]);
-    r=map.hasValue(['a','b']);
-    r=map.hasValue(['a','b','c2']);
-    r=map.has(['a']);
-    r=map.has(['a','b']);
-    r=map.has(['a','b','c1']);
-    r=map.has(['a','b','c2']);
-    r=map.has([TreeMap.ALL]);
-    map.delete(['a','b']);
-    map.delete(['b','c','c2']);
-    map.delete([TreeMap.ALL]);
-    console.log(map);
+  var r, map=new TreeMap();
+  map.set(['a'],['a']);
+  //map.set(['a','b'],['b']);
+  //map.set(['a','b1'],['b1']);
+  map.set(['a','b','c'],['c']);
+  map.set(['a','b','c1'],['c1']);
+  map.set(['a','c','c1'],['cc1']);
+  map.set(['b','c','c2'],['cc2']);
+  debugger;
+  r=map.get(['a']);
+  r=map.get(['a','b']);
+  r=map.get(['a',TreeMap.ALL]);
+  r=map.get([TreeMap.ALL]);
+  r=map.getValue(['a']);
+  r=map.getValue(['a','b']);
+  r=map.getValue(['a','c']);
+  r=map.getValue([TreeMap.ALL]);
+  r=map.hasValue(['a','b']);
+  r=map.hasValue(['a','b','c2']);
+  r=map.has(['a']);
+  r=map.has(['a','b']);
+  r=map.has(['a','b','c1']);
+  r=map.has(['a','b','c2']);
+  r=map.has([TreeMap.ALL]);
+  map.delete(['a','b']);
+  map.delete(['b','c','c2']);
+  map.delete([TreeMap.ALL]);
+  console.log(map);
 */
-    //return;
+  //return;
 
   var queryScopedAll = (function()
   {//source: github.com/lski/scoped-queryselectorall
@@ -184,7 +184,7 @@ var Q = (function()
     },
     remove: function(el,type,handler)
     {
-      if(handler===false) handler=this.defaultFn;
+      if(handler===false)handler=this.defaultFn;
       Qevents.get([type||TreeMap.ALL,handler||TreeMap.ALL,el||TreeMap.ALL]).forEach(this.removeFn);
     }
   };
