@@ -62,11 +62,9 @@ var Q = (function()
       },
       delete: function(keys)
       {
-        if(!Array.isArray(keys)||keys.length===0)return[];
+        if(!Array.isArray(keys)||keys.length===0)return false;
         var arg={'map':[this.map]};
-        if(keys.every(fn1,arg))
-          arg.map.forEach(fn4);
-        return true;
+        return keys.every(fn1,arg)&&!arg.map.forEach(fn4);
       },
       hasValue: function(keys)
       {
@@ -84,40 +82,6 @@ var Q = (function()
     };
     return TreeMap;
   })();
-
-
-
-/*
-  var r, map=new TreeMap();
-  map.set(['a'],['a']);
-  //map.set(['a','b'],['b']);
-  //map.set(['a','b1'],['b1']);
-  map.set(['a','b','c'],['c']);
-  map.set(['a','b','c1'],['c1']);
-  map.set(['a','c','c1'],['cc1']);
-  map.set(['b','c','c2'],['cc2']);
-  debugger;
-  r=map.get(['a']);
-  r=map.get(['a','b']);
-  r=map.get(['a',TreeMap.ALL]);
-  r=map.get([TreeMap.ALL]);
-  r=map.getValue(['a']);
-  r=map.getValue(['a','b']);
-  r=map.getValue(['a','c']);
-  r=map.getValue([TreeMap.ALL]);
-  r=map.hasValue(['a','b']);
-  r=map.hasValue(['a','b','c2']);
-  r=map.has(['a']);
-  r=map.has(['a','b']);
-  r=map.has(['a','b','c1']);
-  r=map.has(['a','b','c2']);
-  r=map.has([TreeMap.ALL]);
-  map.delete(['a','b']);
-  map.delete(['b','c','c2']);
-  map.delete([TreeMap.ALL]);
-  console.log(map);
-*/
-  //return;
 
   var queryScopedAll = (function()
   {//source: github.com/lski/scoped-queryselectorall
