@@ -117,7 +117,7 @@ var Q = (function()
       doc.appendChild(el.firstChild);
     return doc;
   };
-  var Qevents = TreeMap();
+  var Qevents = new TreeMap();
   var eventListener =
   {
     defaultProp: {'once':false,'data':null,'handlerFn':null,'isDisabled':false,'removeFn':null},
